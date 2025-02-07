@@ -1,0 +1,136 @@
+{   
+    "files.autoSave": "afterDelay",// 自动保存
+    "files.autoSaveDelay": 1000,
+    "[markdown]": {
+      "files.autoSave": "afterDelay",
+      "files.autoSaveDelay": 500
+    },
+    "code-runner.runInTerminal": true,// 在终端运行
+    "editor.smoothScrolling": true,// 平滑滚动
+    "editor.cursorBlinking": "expand",// 光标闪烁
+    "editor.cursorSmoothCaretAnimation": "on",// 光标动画
+    "workbench.list.smoothScrolling": true,// 平滑滚动
+
+    "editor.mouseWheelZoom": true,// 鼠标滚轮缩放
+
+    "editor.guides.bracketPairs": true,// 高亮匹配的括号
+    "editor.bracketPairColorization.enabled": true,// 高亮匹配的括号
+
+     // 控制活动代码段是否阻止快速建议
+     "editor.suggest.snippetsPreventQuickSuggestions": false,// 快速建议
+     // 除了 `Tab` 键以外， `Enter` 键是否同样可以接受建议
+     // 这能减少“插入新行”和“接受建议”命令之间的歧义
+     "editor.acceptSuggestionOnEnter": "smart",
+     // 代码补全列表中，优先选择最近的建议
+     "editor.suggestSelection": "recentlyUsedByPrefix",
+     
+     "editor.autoClosingBrackets": "beforeWhitespace",// 自动闭合括号
+     "editor.autoClosingDelete": "always",// 自动删除括号
+     "editor.autoClosingOvertype": "always",// 自动覆盖括号
+     "editor.autoClosingQuotes": "beforeWhitespace",// 自动闭合引号
+
+     "editor.wordWrap": "on",
+    "editor.lineHeight": 1.5,
+
+    "explorer.compactFolders": true,// 文件夹紧凑
+    "notebook.compactView": true,// 笔记本紧凑
+    
+    "window.density.editorTabHeight": "compact",// 编辑器标签高度
+
+    "javascript.format.semicolons": "remove",// 移除分号
+    "typescript.format.semicolons": "remove",// 移除分号
+
+    "typescript.inlayHints.enumMemberValues.enabled": true,// 枚举值提示
+
+    "workbench.startupEditor": "none",
+    
+    "files.autoGuessEncoding": true,
+    
+    "search.searchEditor.singleClickBehaviour": "peekDefinition",// 单击搜索结果打开文件
+
+    "editor.stickyScroll.enabled": true,// 粘性滚动
+
+    "terminal.integrated.shellIntegration.suggestEnabled": true,
+    "files.associations": {
+        "stack": "cpp",
+        "ostream": "cpp",
+        "new": "cpp",
+        "iostream": "cpp",
+        "vector": "cpp",
+        "__bit_reference": "cpp",
+        "__config": "cpp",
+        "__hash_table": "cpp",
+        "__locale": "cpp",
+        "__node_handle": "cpp",
+        "__split_buffer": "cpp",
+        "__threading_support": "cpp",
+        "__verbose_abort": "cpp",
+        "array": "cpp",
+        "bitset": "cpp",
+        "cctype": "cpp",
+        "clocale": "cpp",
+        "cmath": "cpp",
+        "complex": "cpp",
+        "cstdarg": "cpp",
+        "cstddef": "cpp",
+        "cstdint": "cpp",
+        "cstdio": "cpp",
+        "cstdlib": "cpp",
+        "cstring": "cpp",
+        "ctime": "cpp",
+        "cwchar": "cpp",
+        "cwctype": "cpp",
+        "deque": "cpp",
+        "execution": "cpp",
+        "initializer_list": "cpp",
+        "ios": "cpp",
+        "iosfwd": "cpp",
+        "istream": "cpp",
+        "limits": "cpp",
+        "locale": "cpp",
+        "mutex": "cpp",
+        "optional": "cpp",
+        "ratio": "cpp",
+        "sstream": "cpp",
+        "stdexcept": "cpp",
+        "streambuf": "cpp",
+        "string": "cpp",
+        "string_view": "cpp",
+        "tuple": "cpp",
+        "typeinfo": "cpp",
+        "unordered_map": "cpp",
+        "variant": "cpp",
+        "algorithm": "cpp",
+        "__tree": "cpp",
+        "fstream": "cpp",
+        "iomanip": "cpp",
+        "map": "cpp",
+        "set": "cpp"
+    },
+    "latex-workshop.latex.build.selectedRecipe": "xelatex",
+    "latex-workshop.latex.tools": [
+        {
+            "name": "xelatex",
+            "command": "xelatex",
+            "args": [
+                "--synctex=1",
+                "--interaction=nonstopmode",
+                "--file-line-error",
+                "%DOC%"
+            ]
+        }
+    ],
+    "latex-workshop.latex.recipes": [
+        {
+            "name": "xelatex",
+            "tools": ["xelatex"]
+        }
+    ],
+    "markdown-preview-enhanced.previewTheme": "atom-dark.css",
+    "github.copilot.enable": {
+        "*": true,
+        "plaintext": false,
+        "markdown": true,
+        "scminput": false
+    }
+}
