@@ -8,6 +8,9 @@ pygame.mixer.init()
 
 # 处理音效
 try:
+    pygame.mixer.music.load("sounds/music.mp3")
+    pygame.mixer.music.set_volume(0.5)
+    pygame.mixer.music.play(-1)
     get_sound = pygame.mixer.Sound("sounds/get.wav")
     nice_sound = pygame.mixer.Sound("sounds/nice.wav")
     hit_sound = pygame.mixer.Sound("sounds/hit.wav")
@@ -35,7 +38,7 @@ class Enemy(pygame.sprite.Sprite):
         x=random.choice(valid_x_range)
         y=random.choice(valid_y_range)
         self.rect = self.image.get_rect(center=(x,y))# 随机位置
-        self.speed = 3
+        self.speed = 2
         self.state = "patrol"
         self.patrol_points = [(x, y) for x in range(100, 700, 200) for y in range(100, 500, 200)]
         self.target_point = random.choice(self.patrol_points)
@@ -81,15 +84,32 @@ class Enemy(pygame.sprite.Sprite):
 # 创建敌人组
 enemies = pygame.sprite.Group(Enemy() for _ in range(5))
 
-# 创建道具
-powerup = pygame.Rect(random.randint(0, 770), random.randint(0, 570), 30, 30)
+class Powerup(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.Surface((30, 30))
+        self.image.fill((255, 255, 0))
+        self.rect = self.image.get_rect(center=(random.randint(0, 800), random.randint(0, 600)))
+        self.speed_x = random.choice([-2, 2])
+        self.speed_y = random.choice([-2, 2])
+        
+    def update(self):
+        self.rect.x += self.speed_x
+        self.rect.y += self.speed_y
+        # 边缘反弹
+        if self.rect.left < 0 or self.rect.right > 800:
+            self.speed_x = -self.speed_x
+        if self.rect.top < 0 or self.rect.bottom > 600:
+            self.speed_y = -self.speed_y
+
+# 创建移动道具，而不是pygame.Rect
+powerup = Powerup()
 player_has_power = False
 
 # 计时器
 clock = pygame.time.Clock()
 running = True
-
-next_powerup_time = pygame.time.get_ticks() + 30000
+next_powerup_time = pygame.time.get_ticks() + 10000
 
 # 游戏主循环
 while running:
@@ -99,26 +119,32 @@ while running:
 
     # 玩家控制
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_w]: player.y -= 6
-    if keys[pygame.K_s]: player.y += 6
-    if keys[pygame.K_a]: player.x -= 6
-    if keys[pygame.K_d]: player.x += 6
+    if keys[pygame.K_w]: player.y -= 4
+    if keys[pygame.K_s]: player.y += 4
+    if keys[pygame.K_a]: player.x -= 4
+    if keys[pygame.K_d]: player.x += 4
     if keys[pygame.K_ESCAPE]:  # ESC 退出
         running = False
 
     # 确保玩家不会超出屏幕边界
     player.clamp_ip(screen.get_rect())
 
+    # 更新道具位置
+    if powerup:
+        powerup.update()
+
     # 如果有道具，检测和玩家的碰撞
-    if powerup and player.colliderect(powerup):
+    if powerup and player.colliderect(powerup.rect):
         player_has_power = True
         if get_sound:
             get_sound.play()
         powerup = None  # 道具消失
+        powerup = Powerup()
+        next_powerup_time = pygame.time.get_ticks() + 10000
 
     # 每隔 10 秒生成一个道具（如果当前没有道具）
     if not powerup and pygame.time.get_ticks() >= next_powerup_time:
-        powerup = pygame.Rect(random.randint(0, 770), random.randint(0, 570), 30, 30)
+        powerup = Powerup()
         next_powerup_time = pygame.time.get_ticks() + 10000
 
     # 更新 AI
@@ -138,7 +164,7 @@ while running:
                 if hit_sound:
                     hit_sound.play()
                 font_game_over = pygame.font.Font(None, 74)
-                game_over_text = font_game_over.render("Game Over, Press r To New", True, (255, 0, 0))
+                game_over_text = font_game_over.render("Game Over, Press r Again", True, (255, 0, 0))
                 text_rect = game_over_text.get_rect(center=(400, 300))
                 screen.blit(game_over_text, text_rect)
                 pygame.display.flip()
@@ -153,7 +179,7 @@ while running:
                                 player.x, player.y = 400, 300
                                 enemies.empty()
                                 enemies.add(Enemy() for _ in range(5))
-                                powerup = pygame.Rect(random.randint(0, 770), random.randint(0, 570), 30, 30)
+                                powerup = Powerup()
                                 player_has_power = False
                                 waiting = False
                             elif event.key == pygame.K_ESCAPE:
@@ -174,7 +200,7 @@ while running:
     screen.fill((0, 0, 0))
     # 道具
     if powerup:
-        pygame.draw.rect(screen, (255, 255, 0), powerup)
+        screen.blit(powerup.image, powerup.rect)
 
     # 玩家
     if player_has_power:
@@ -190,6 +216,6 @@ while running:
     screen.blit(text, (10, 10))
 
     pygame.display.flip()
-    clock.tick(60)
+    clock.tick(50)
 
 pygame.quit()
