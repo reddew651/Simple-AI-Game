@@ -8,10 +8,13 @@ pygame.mixer.init()
 
 # 处理音效
 try:
-    nice_sound = pygame.mixer.Sound("nice.wav")
-    hit_sound = pygame.mixer.Sound("hit.wav")
+    get_sound = pygame.mixer.Sound("sounds/get.wav")
+    nice_sound = pygame.mixer.Sound("sounds/nice.wav")
+    hit_sound = pygame.mixer.Sound("sounds/hit.wav")
 except pygame.error:
-    print("Warning: Missing hit sound file!")
+    print("Warning: Missing sounds file!")
+    get_sound = None
+    nice_sound = None
     hit_sound = None  # 避免程序崩溃
 
 # 屏幕设置
@@ -34,7 +37,7 @@ class Enemy(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=(x,y))# 随机位置
         self.speed = 3
         self.state = "patrol"
-        self.patrol_points = [(x, y) for x in range(100, 700, 200) for y in range(100, 500, 200)]# 巡逻点，100是起始位置，700是终点，200是间隔
+        self.patrol_points = [(x, y) for x in range(100, 700, 200) for y in range(100, 500, 200)]
         self.target_point = random.choice(self.patrol_points)
         self.attack_range = 200
         self.disengage_range = 300
@@ -96,10 +99,10 @@ while running:
 
     # 玩家控制
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_w]: player.y -= 5
-    if keys[pygame.K_s]: player.y += 5
-    if keys[pygame.K_a]: player.x -= 5
-    if keys[pygame.K_d]: player.x += 5
+    if keys[pygame.K_w]: player.y -= 6
+    if keys[pygame.K_s]: player.y += 6
+    if keys[pygame.K_a]: player.x -= 6
+    if keys[pygame.K_d]: player.x += 6
     if keys[pygame.K_ESCAPE]:  # ESC 退出
         running = False
 
@@ -109,6 +112,8 @@ while running:
     # 如果有道具，检测和玩家的碰撞
     if powerup and player.colliderect(powerup):
         player_has_power = True
+        if get_sound:
+            get_sound.play()
         powerup = None  # 道具消失
 
     # 每隔 10 秒生成一个道具（如果当前没有道具）
