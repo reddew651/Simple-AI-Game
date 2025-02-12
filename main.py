@@ -11,14 +11,13 @@ try:
     pygame.mixer.music.load("sounds/music.mp3")
     pygame.mixer.music.set_volume(0.5)
     pygame.mixer.music.play(-1)
+    victory_sound = pygame.mixer.Sound("sounds/victory.wav")
     get_sound = pygame.mixer.Sound("sounds/get.wav")
     nice_sound = pygame.mixer.Sound("sounds/nice.wav")
     hit_sound = pygame.mixer.Sound("sounds/hit.wav")
 except pygame.error:
     print("Warning: Missing sounds file!")
-    get_sound = None
-    nice_sound = None
-    hit_sound = None  # 避免程序崩溃
+    get_sound = nice_sound = hit_sound = victory_sound = None
 
 # 屏幕设置
 screen = pygame.display.set_mode((800, 600))
@@ -31,13 +30,10 @@ class Enemy(pygame.sprite.Sprite):
         super().__init__()
         self.image = pygame.Surface((30, 30))
         self.image.fill((148, 0, 211))
-        valid_x_range = list(range(0,301))+list(range(500,801))
-        valid_y_range = list(range(0,201))+list(range(400,601))
-        random.choice(valid_x_range)
-        random.choice(valid_y_range)
-        x=random.choice(valid_x_range)
-        y=random.choice(valid_y_range)
-        self.rect = self.image.get_rect(center=(x,y))# 随机位置
+        rx = list(range(0, 301)) + list(range(500, 801))
+        ry = list(range(0, 201)) + list(range(400, 601))
+        x, y = random.choice(rx), random.choice(ry)
+        self.rect = self.image.get_rect(center=(x, y))
         self.speed = 2
         self.state = "patrol"
         self.patrol_points = [(x, y) for x in range(100, 700, 200) for y in range(100, 500, 200)]
@@ -45,41 +41,41 @@ class Enemy(pygame.sprite.Sprite):
         self.attack_range = 200
         self.disengage_range = 300
 
-    def update(self, player_pos):# 更新敌人位置
-        player_vector = pygame.math.Vector2(player_pos)
-        enemy_vector = pygame.math.Vector2(self.rect.center)
+    def update(self, player_pos):
+        pv = pygame.math.Vector2(player_pos)
+        ev = pygame.math.Vector2(self.rect.center)
 
         if self.state == "patrol":
             self._patrol()
-            if player_vector.distance_to(enemy_vector) < self.attack_range:
+            if pv.distance_to(ev) < self.attack_range:
                 self.state = "attack"
         else:
             self._attack(player_pos)
-            if player_vector.distance_to(enemy_vector) > self.disengage_range:
+            if pv.distance_to(ev) > self.disengage_range:
                 self.state = "patrol"
                 self.target_point = self.rect.center  
 
     def _patrol(self):
-        target_vector = pygame.math.Vector2(self.target_point)
-        enemy_vector = pygame.math.Vector2(self.rect.center)
-        direction = target_vector - enemy_vector
+        tv = pygame.math.Vector2(self.target_point)
+        ev = pygame.math.Vector2(self.rect.center)
+        d = tv - ev
 
-        if direction.length() > self.speed:
-            direction = direction.normalize() * self.speed
+        if d.length() > self.speed:
+            d = d.normalize() * self.speed
         else:
             self.target_point = random.choice(self.patrol_points)
 
-        self.rect.x += direction.x
-        self.rect.y += direction.y
+        self.rect.x += d.x
+        self.rect.y += d.y
 
     def _attack(self, target):
         dx = target[0] - self.rect.centerx
         dy = target[1] - self.rect.centery
-        distance = math.hypot(dx, dy)
+        dist = math.hypot(dx, dy)
 
-        if distance != 0:
-            self.rect.x += self.speed * dx / distance
-            self.rect.y += self.speed * dy / distance
+        if dist != 0:
+            self.rect.x += self.speed * dx / dist
+            self.rect.y += self.speed * dy / dist
 
 # 创建敌人组
 enemies = pygame.sprite.Group(Enemy() for _ in range(5))
@@ -123,6 +119,11 @@ while running:
     if keys[pygame.K_s]: player.y += 4
     if keys[pygame.K_a]: player.x -= 4
     if keys[pygame.K_d]: player.x += 4
+    if keys[pygame.K_LSHIFT]: 
+        if keys[pygame.K_w]: player.y -= 8
+        if keys[pygame.K_s]: player.y += 8
+        if keys[pygame.K_a]: player.x -= 8
+        if keys[pygame.K_d]: player.x += 8
     if keys[pygame.K_ESCAPE]:  # ESC 退出
         running = False
 
@@ -139,11 +140,9 @@ while running:
         if get_sound:
             get_sound.play()
         powerup = None  # 道具消失
-        powerup = Powerup()
-        next_powerup_time = pygame.time.get_ticks() + 10000
 
     # 每隔 10 秒生成一个道具（如果当前没有道具）
-    if not powerup and pygame.time.get_ticks() >= next_powerup_time:
+    if not powerup and pygame.time.get_ticks() >= next_powerup_time and not player_has_power:
         powerup = Powerup()
         next_powerup_time = pygame.time.get_ticks() + 10000
 
@@ -159,6 +158,8 @@ while running:
                     nice_sound.play()
                 enemies.remove(enemy)
                 player_has_power = False
+                powerup = Powerup()
+                next_powerup_time = pygame.time.get_ticks() + 10000
             else:
                 # 无道具则游戏结束
                 if hit_sound:
@@ -189,9 +190,12 @@ while running:
 
     # 如果所有敌人都消灭，则胜利
     if len(enemies) == 0:
+        pygame.mixer.music.stop()
         font_win = pygame.font.Font(None, 74)
         win_text = font_win.render("You Win!", True, (255, 255, 0))
         screen.blit(win_text, win_text.get_rect(center=(400, 300)))
+        if victory_sound:
+            victory_sound.play()
         pygame.display.flip()
         pygame.time.wait(2000)
         running = False
@@ -204,9 +208,15 @@ while running:
 
     # 玩家
     if player_has_power:
-        pygame.draw.rect(screen, (255, 255, 0), player)
+        if keys[pygame.K_LSHIFT]:
+            pygame.draw.rect(screen, (255, 165, 0), player)
+        else:
+            pygame.draw.rect(screen, (255, 255, 0), player)
     else:
-        pygame.draw.rect(screen, (0, 255, 0), player)
+        if keys[pygame.K_LSHIFT]:
+            pygame.draw.rect(screen, (80, 139, 0), player)
+        else:
+            pygame.draw.rect(screen, (0, 255, 0), player)
 
     enemies.draw(screen)
 
