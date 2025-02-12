@@ -10,7 +10,7 @@ pygame.mixer.init()
 try:
     pygame.mixer.music.load("sounds/music.mp3")
     pygame.mixer.music.set_volume(0.5)
-    pygame.mixer.music.play(-1)
+    pygame.mixer.music.play(-1) 
     victory_sound = pygame.mixer.Sound("sounds/victory.wav")
     get_sound = pygame.mixer.Sound("sounds/get.wav")
     nice_sound = pygame.mixer.Sound("sounds/nice.wav")
@@ -36,7 +36,7 @@ class Enemy(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=(x, y))
         self.speed = 2
         self.state = "patrol"
-        self.patrol_points = [(x, y) for x in range(100, 700, 200) for y in range(100, 500, 200)]
+        self.patrol_points = [(x, y) for x in range(0, 800, 200) for y in range(9, 600, 200)]
         self.target_point = random.choice(self.patrol_points)
         self.attack_range = 200
         self.disengage_range = 300
@@ -78,7 +78,8 @@ class Enemy(pygame.sprite.Sprite):
             self.rect.y += self.speed * dy / dist
 
 # 创建敌人组
-enemies = pygame.sprite.Group(Enemy() for _ in range(5))
+number = 3
+enemies = pygame.sprite.Group(Enemy() for _ in range(number))
 
 class Powerup(pygame.sprite.Sprite):
     def __init__(self):
@@ -120,10 +121,10 @@ while running:
     if keys[pygame.K_a]: player.x -= 4
     if keys[pygame.K_d]: player.x += 4
     if keys[pygame.K_LSHIFT]: 
-        if keys[pygame.K_w]: player.y -= 8
-        if keys[pygame.K_s]: player.y += 8
-        if keys[pygame.K_a]: player.x -= 8
-        if keys[pygame.K_d]: player.x += 8
+        if keys[pygame.K_w]: player.y -= 6
+        if keys[pygame.K_s]: player.y += 6
+        if keys[pygame.K_a]: player.x -= 6
+        if keys[pygame.K_d]: player.x += 6
     if keys[pygame.K_ESCAPE]:  # ESC 退出
         running = False
 
@@ -179,7 +180,7 @@ while running:
                             if event.key == pygame.K_r:
                                 player.x, player.y = 400, 300
                                 enemies.empty()
-                                enemies.add(Enemy() for _ in range(5))
+                                enemies.add(Enemy() for _ in range(number))
                                 powerup = Powerup()
                                 player_has_power = False
                                 waiting = False
@@ -214,7 +215,7 @@ while running:
             pygame.draw.rect(screen, (255, 255, 0), player)
     else:
         if keys[pygame.K_LSHIFT]:
-            pygame.draw.rect(screen, (80, 139, 0), player)
+            pygame.draw.rect(screen, (80, 169, 0), player)
         else:
             pygame.draw.rect(screen, (0, 255, 0), player)
 
