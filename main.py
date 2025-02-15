@@ -78,7 +78,7 @@ class Enemy(pygame.sprite.Sprite):
             self.rect.y += self.speed * dy / dist
 
 # 创建敌人组
-number = 3
+number = 4
 enemies = pygame.sprite.Group(Enemy() for _ in range(number))
 
 class Powerup(pygame.sprite.Sprite):
