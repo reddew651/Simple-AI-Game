@@ -52,7 +52,6 @@ class Game:
         self.player.clamp_ip(self.screen.get_rect())
 
     def update(self):
-        # Update powerup
         if self.powerup:
             self.powerup.update()
 
@@ -166,6 +165,9 @@ class Game:
                     if event.key == pygame.K_r:
                         # 调用 init_game 时，将 self.current_level 传进去
                         self.init_game(self.current_level)
+                        current_time = pygame.time.get_ticks()
+                        self.player_invincible = True
+                        self.invincible_until = pygame.time.get_ticks() + 2000
                         return True
                     if event.key == pygame.K_ESCAPE:
                         return False
