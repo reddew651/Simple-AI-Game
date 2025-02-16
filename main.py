@@ -116,6 +116,26 @@ class Game:
         text_rect = text.get_rect(center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
         self.screen.blit(text, text_rect)
         pygame.display.flip()
+    
+        waiting = True
+        while waiting:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    return False
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_r:
+                        self.init_game()
+                        return True
+                    if event.key == pygame.K_ESCAPE:
+                        return False
+        return True
+
+    def game_win_screen(self):
+        font = pygame.font.Font(None, 74)
+        text = font.render("Victory! Press R to Restart", True, GREEN)
+        text_rect = text.get_rect(center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
+        self.screen.blit(text, text_rect)
+        pygame.display.flip()
 
         waiting = True
         while waiting:
@@ -151,10 +171,11 @@ class Game:
             
             self.draw()
 
+            # Modified victory condition
             if len(self.enemies) == 0:
                 if self.sounds['victory']:
                     self.sounds['victory'].play()
-                running = False
+                running = self.game_win_screen()
 
 if __name__ == "__main__":
     game = Game()
