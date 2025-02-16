@@ -100,3 +100,34 @@ class ShootingEnemy(Enemy):
             if 0 <= new_x <= SCREEN_WIDTH-ENEMY_SIZE and 0 <= new_y <= SCREEN_HEIGHT-ENEMY_SIZE:
                 self.rect.x = new_x
                 self.rect.y = new_y
+
+class StrongEnemy(Enemy):
+    def __init__(self):
+        super().__init__()
+        self.image.fill(STRONG_ENEMY_COLOR1)  # 初始颜色
+        self.speed = STRONG_ENEMY_SPEED
+        self.hp = STRONG_ENEMY_HP
+        # 删除左右往返移动的属性
+
+    def update(self, player_pos):
+        # 始终向玩家追随
+        dx = player_pos[0] - self.rect.centerx
+        dy = player_pos[1] - self.rect.centery
+        dist = math.hypot(dx, dy)
+        if dist != 0:
+            # 使用归一化方向向量更新位置
+            self.rect.x += int(self.speed * dx / dist)
+            self.rect.y += int(self.speed * dy / dist)
+
+    def hit(self):
+        self.hp -= 1
+        # 根据剩余血量改变颜色
+        if self.hp == 2:
+            self.image.fill(STRONG_ENEMY_COLOR2)
+        elif self.hp == 1:
+            self.image.fill(STRONG_ENEMY_COLOR3)
+        # 血量归零时移除敌人
+        if self.hp <= 0:
+            self.kill()
+            return True
+        return False
