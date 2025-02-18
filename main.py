@@ -23,13 +23,15 @@ class Game:
         self.player_has_power = False
         self.next_powerup_time = pygame.time.get_ticks() + POWERUP_INTERVAL
         #增加无敌帧
-        self.player_invincible = False
-        self.invincible_until = 0
+        self.player_invincible = True
+        self.invincible_until = 1000
 
     def spawn_enemies(self, level=1):
         if level == 1:
             # 仅生成普通敌人
             self.enemies.add(Enemy() for _ in range(1))
+            self.enemies.add(ShootingEnemy() for _ in range(1))
+            self.enemies.add(StrongEnemy() for _ in range(1))
         elif level == 2:
             # 生成普通敌人 + 射击敌人
             self.enemies.add(Enemy() for _ in range(1))
@@ -42,7 +44,7 @@ class Game:
 
     def handle_input(self):
         keys = pygame.key.get_pressed()
-        speed = PLAYER_SPRINT_SPEED if keys[pygame.K_LSHIFT] else PLAYER_SPEED
+        speed = PLAYER_SPRINT_SPEED if self.player_has_power else PLAYER_SPEED
         
         if keys[pygame.K_w]: self.player.y -= speed
         if keys[pygame.K_s]: self.player.y += speed
@@ -65,7 +67,7 @@ class Game:
         # Spawn new powerup
         if not self.powerup and not self.player_has_power:
             current_time = pygame.time.get_ticks()
-            if current_time >= self.next_powerup_time:
+            if current_time >= self.next_powerup_time: #if 
                 self.powerup = Powerup()
                 self.next_powerup_time = current_time + POWERUP_INTERVAL
 
@@ -81,10 +83,12 @@ class Game:
         # 如果玩家处于无敌状态则跳过碰撞检测
         if self.player_invincible and current_time < self.invincible_until:
             return False
+        
+        self.player_invincible = False #重要一步，否则无敌状态会一直保持
 
         for enemy in self.enemies.copy():
             if self.player.colliderect(enemy.rect):
-                if isinstance(enemy, StrongEnemy):
+                if isinstance(enemy, StrongEnemy):#检查和强敌的碰撞
                     if self.player_has_power:
                         if self.sounds['nice']:
                             self.sounds['nice'].play()
@@ -92,27 +96,27 @@ class Game:
                         if enemy.hit():
                             self.enemies.remove(enemy)
                         self.player_has_power = False
-                        self.powerup = Powerup()
+                        #self.powerup = Powerup() # if add this the powerup will appear once the enemy is killed
                         self.next_powerup_time = current_time + POWERUP_INTERVAL
                         # 设置无敌状态，给予玩家反应时间
                         self.player_invincible = True
-                        self.invincible_until = current_time + 1000  # 1秒无敌
+                        self.invincible_until = current_time + 200
                     else:
                         return True  # Game Over
-                else:
+                else:#检查和普通敌人的碰撞
                     if self.player_has_power:
                         if self.sounds['nice']:
                             self.sounds['nice'].play()
                         self.enemies.remove(enemy)
                         self.player_has_power = False
-                        self.powerup = Powerup()
+                        #self.powerup = Powerup()
                         self.next_powerup_time = current_time + POWERUP_INTERVAL
                         self.player_invincible = True
-                        self.invincible_until = current_time + 1000
+                        self.invincible_until = current_time + 200
                     else:
                         return True  # Game Over
 
-            if isinstance(enemy, ShootingEnemy):
+            if isinstance(enemy, ShootingEnemy):#检查和射击敌人子弹的碰撞
                 for bullet in enemy.bullets.copy():
                     if self.player.colliderect(bullet.rect):
                         if self.player_has_power:
@@ -120,10 +124,10 @@ class Game:
                                 self.sounds['nice'].play()
                             bullet.kill()
                             self.player_has_power = False
-                            self.powerup = Powerup()
+                            #self.powerup = Powerup()
                             self.next_powerup_time = current_time + POWERUP_INTERVAL
                             self.player_invincible = True
-                            self.invincible_until = current_time + 1000
+                            self.invincible_until = current_time + 200
                         else:
                             return True  # Game Over
         return False
@@ -136,9 +140,7 @@ class Game:
             self.screen.blit(self.powerup.image, self.powerup.rect)
         
         # Draw player
-        color = (ORANGE if self.player_has_power and pygame.key.get_pressed()[pygame.K_LSHIFT] else
-                YELLOW if self.player_has_power else
-                GREEN)
+        color = (ORANGE if self.player_invincible == True else YELLOW if self.player_has_power and self.player_invincible == False else GREEN)
         pygame.draw.rect(self.screen, color, self.player)
         
         # Draw enemies and bullets
@@ -220,10 +222,16 @@ class Game:
                     # 切换到第二关
                     self.current_level = 2
                     self.spawn_enemies(self.current_level)
+                    self.player_invincible = True
+                    self.invincible_until = pygame.time.get_ticks() + 2000
+                    self.powerup = Powerup()
                 elif self.current_level == 2:
                     # 切换到第三关
                     self.current_level = 3
                     self.spawn_enemies(self.current_level)
+                    self.player_invincible = True
+                    self.invincible_until = pygame.time.get_ticks() + 2000
+                    self.powerup = Powerup()
                 else:
                     # 已通过最后一关
                     if self.sounds['victory']:

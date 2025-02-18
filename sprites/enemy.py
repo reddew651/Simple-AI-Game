@@ -67,6 +67,7 @@ class ShootingEnemy(Enemy):
     def __init__(self):
         super().__init__()
         self.speed = SHOOTING_ENEMY_SPEED
+        self.image = pygame.Surface((SHOOTING_ENEMY_SIZE, SHOOTING_ENEMY_SIZE)) #很重要，要先设置大小，再填充颜色，新的Surface会覆盖原有的Surface，没搞懂
         self.image.fill(RED)
         self.shoot_cooldown = SHOOT_COOLDOWN
         self.last_shot = 0
@@ -104,7 +105,8 @@ class ShootingEnemy(Enemy):
 class StrongEnemy(Enemy):
     def __init__(self):
         super().__init__()
-        self.image.fill(STRONG_ENEMY_COLOR1)  # 初始颜色
+        self.image = pygame.Surface((STRONG_ENEMY_SIZE, STRONG_ENEMY_SIZE))
+        self.image.fill(PURPLE)  # 初始颜色
         self.speed = STRONG_ENEMY_SPEED
         self.hp = STRONG_ENEMY_HP
         # 删除左右往返移动的属性
@@ -123,9 +125,9 @@ class StrongEnemy(Enemy):
         self.hp -= 1
         # 根据剩余血量改变颜色
         if self.hp == 2:
-            self.image.fill(STRONG_ENEMY_COLOR2)
+            self.image.fill(DARK_PURPLE)
         elif self.hp == 1:
-            self.image.fill(STRONG_ENEMY_COLOR3)
+            self.image.fill(MIDNIGHT_PURPLE)
         # 血量归零时移除敌人
         if self.hp <= 0:
             self.kill()
