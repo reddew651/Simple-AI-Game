@@ -1,7 +1,7 @@
 import pygame
 from config.settings import *
 from utils.sound import load_sounds
-from sprites.enemy import Enemy, ShootingEnemy, StrongEnemy
+from sprites.enemy import Enemy, ShootingEnemy, StrongEnemy, CopyEnemy
 from sprites.powerup import Powerup
 
 class StartMenu:
@@ -71,7 +71,11 @@ class Game:
     def spawn_enemies(self, level=1):
         if level == 1:
             # 仅生成普通敌人
-            self.enemies.add(StrongEnemy() for _ in range(1))
+            #self.enemies.add(Enemy() for _ in range(1))
+            copy_enemy = CopyEnemy()
+            copy_enemy.enemy_group = self.enemies
+            self.enemies.add(copy_enemy)
+
         elif level == 2:
             # 生成普通敌人 + 射击敌人
             #self.enemies.add(Enemy() for _ in range(1))

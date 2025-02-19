@@ -133,3 +133,41 @@ class StrongEnemy(Enemy):
             self.kill()
             return True
         return False
+    
+class CopyEnemy(Enemy):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.Surface((COPY_ENEMY_SIZE, COPY_ENEMY_SIZE))
+        self.image.fill(BLUE)
+        self.speed = COPY_ENEMY_SPEED
+        # Add copy cooldown attributes
+        self.copy_cooldown = 10000  # 10 seconds in milliseconds
+        self.last_copy = pygame.time.get_ticks()
+        # Store reference to the game's enemy group (will be set by Game class)
+        self.enemy_group = None
+
+    def update(self, player_pos):
+        # Normal movement
+        dx = player_pos[0] - self.rect.centerx
+        dy = player_pos[1] - self.rect.centery
+        dist = math.hypot(dx, dy)
+        if dist != 0:
+            self.rect.x += int(self.speed * dx / dist)
+            self.rect.y += int(self.speed * dy / dist)
+
+        # Check if it's time to create a copy
+        now = pygame.time.get_ticks()
+        if now - self.last_copy > self.copy_cooldown and self.enemy_group is not None:
+            # Create new CopyEnemy
+            new_copy = CopyEnemy()
+            # Set its position near the original
+            new_copy.rect.center = (
+                self.rect.centerx + random.randint(-50, 50),
+                self.rect.centery + random.randint(-50, 50)
+            )
+            # Give it reference to the enemy group
+            new_copy.enemy_group = self.enemy_group
+            # Add it to the game's enemy group
+            self.enemy_group.add(new_copy)
+            # Reset the timer
+            self.last_copy = now
