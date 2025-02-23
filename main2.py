@@ -3,6 +3,7 @@ from config.settings import *
 from utils.sound import load_sounds
 from sprites.enemy import Enemy, ShootingEnemy, StrongEnemy, CopyEnemy
 from sprites.powerup import Powerup
+import math
 
 class StartMenu:
     def __init__(self, screen):
@@ -70,7 +71,6 @@ class Game:
 
     def spawn_enemies(self, level=1):
         if level == 1:
-            # 仅生成普通敌人
             #self.enemies.add(Enemy() for _ in range(1))
             copy_enemy = CopyEnemy()
             copy_enemy.enemy_group = self.enemies
@@ -124,15 +124,17 @@ class Game:
 
     def check_collisions(self):
         current_time = pygame.time.get_ticks()
-        # 如果玩家处于无敌状态则跳过碰撞检测
         if self.player_invincible and current_time < self.invincible_until:
             return False
         
-        self.player_invincible = False #重要一步，否则无敌状态会一直保持
+        self.player_invincible = False
 
         for enemy in self.enemies.copy():
             if self.player.colliderect(enemy.rect):
-                if isinstance(enemy, StrongEnemy):#检查和强敌的碰撞
+                # Add bounce effect before handling collision
+                self.bounce_back(self.player, enemy)
+                
+                if isinstance(enemy, StrongEnemy):
                     if self.player_has_power:
                         if self.sounds['nice']:
                             self.sounds['nice'].play()
@@ -183,19 +185,78 @@ class Game:
         if self.powerup:
             self.screen.blit(self.powerup.image, self.powerup.rect)
         
-        # Draw player
-        color = (ORANGE if self.player_invincible == True else YELLOW if self.player_has_power and self.player_invincible == False else GREEN)
+        # Draw player with border
+        color = (ORANGE if self.player_invincible == True 
+                else YELLOW if self.player_has_power and self.player_invincible == False 
+                else GREEN)
         pygame.draw.rect(self.screen, color, self.player)
+        # Add border
+        pygame.draw.rect(self.screen, WHITE, self.player, 2)
         
-        # Draw enemies and bullets
+        # Draw enemies and bullets with borders
         self.enemies.draw(self.screen)
         for enemy in self.enemies:
+            # Get border size based on enemy type
+            if isinstance(enemy, StrongEnemy):
+                border_rect = pygame.Rect(enemy.rect.x, enemy.rect.y, 
+                                        STRONG_ENEMY_SIZE, STRONG_ENEMY_SIZE)
+            elif isinstance(enemy, ShootingEnemy):
+                border_rect = pygame.Rect(enemy.rect.x, enemy.rect.y, 
+                                        SHOOTING_ENEMY_SIZE, SHOOTING_ENEMY_SIZE)
+            elif isinstance(enemy, CopyEnemy):
+                border_rect = pygame.Rect(enemy.rect.x, enemy.rect.y, 
+                                        COPY_ENEMY_SIZE, COPY_ENEMY_SIZE)
+            else:
+                border_rect = pygame.Rect(enemy.rect.x, enemy.rect.y, 
+                                        ENEMY_SIZE, ENEMY_SIZE)
+            
+            pygame.draw.rect(self.screen, WHITE, border_rect, 2) #self.screen是游戏窗口,border_rect是矩形对象
+            
+            # Draw bullets if enemy is ShootingEnemy
             if isinstance(enemy, ShootingEnemy):
                 enemy.bullets.draw(self.screen)
+                for bullet in enemy.bullets:
+                    bullet_rect = pygame.Rect(bullet.rect.x, bullet.rect.y, 
+                                            BULLET_SIZE, BULLET_SIZE)
+                    pygame.draw.rect(self.screen, WHITE, bullet_rect, 1)
         
         pygame.display.flip()
 
+    def bounce_back(self, entity1, entity2, bounce_force=20):
+        # Handle both Rect and Sprite objects
+        rect1 = entity1 if isinstance(entity1, pygame.Rect) else entity1.rect
+        rect2 = entity2 if isinstance(entity2, pygame.Rect) else entity2.rect
         
+        # Calculate direction vector between entities
+        dx = rect1.centerx - rect2.centerx
+        dy = rect1.centery - rect2.centerx
+        
+        # Normalize direction
+        distance = math.hypot(dx, dy)
+        if distance == 0:
+            return
+        
+        dx = dx / distance * bounce_force
+        dy = dy / distance * bounce_force
+        
+        # Move entities apart
+        if isinstance(entity1, pygame.Rect):
+            entity1.x += dx
+            entity1.y += dy
+        else:
+            entity1.rect.x += dx
+            entity1.rect.y += dy
+            
+        if isinstance(entity2, pygame.Rect):
+            entity2.x -= dx
+            entity2.y -= dy
+        else:
+            entity2.rect.x -= dx
+            entity2.rect.y -= dy
+        
+        # Keep entities within screen bounds
+        rect1.clamp_ip(self.screen.get_rect())
+        rect2.clamp_ip(self.screen.get_rect())
 
     def run(self):
         running = True
